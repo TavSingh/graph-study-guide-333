@@ -4,6 +4,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import org.w3c.dom.css.ViewCSS;
 
 public class Practice {
 
@@ -137,6 +138,21 @@ public class Practice {
    * @return true if there is a two-way connection between v1 and v2, false otherwise
    */
   public static <T> boolean twoWay(Vertex<T> v1, Vertex<T> v2) {
+    if (v1 == null || v2 == null) return false;
+
+    if (v1 == v2) return true;
+
+    return twoWayHelper(v1, v2, new HashSet<>()) && twoWayHelper(v2, v1, new HashSet<>());
+  }
+
+  private static <T> boolean twoWayHelper(Vertex<T> current, Vertex<T> target, Set<Vertex<T>> visited) {
+    if (current == target) return true;
+
+    if (!visited.add(current)) return false;
+
+    for (Vertex<T> neighbor : current.neighbors) {
+      if (twoWayHelper(neighbor, target, visited)) return true;
+    }
     return false;
   }
 
@@ -153,6 +169,34 @@ public class Practice {
    * @return whether there exists a valid positive path from starting to ending
    */
   public static boolean positivePathExists(Map<Integer, Set<Integer>> graph, int starting, int ending) {
+    if (graph == null || !graph.containsKey(starting) || !graph.containsKey(ending)) {
+      return false;
+    }
+
+    if (starting <= 0 || ending <= 0) {
+      return false;
+    }
+
+    if (starting == ending) {
+      return true;
+    }
+
+    return positiveHelper(graph, starting, ending, new HashSet<>());
+  }
+
+  private static boolean positiveHelper(Map<Integer, Set<Integer>> graph, int current, int ending, Set<Integer> visited) {
+    if (current == ending) return true;
+
+    visited.add(current);
+
+    for (int neighbor : graph.getOrDefault(current, Collections.emptySet())) {
+      if (neighbor > 0 && !visited.contains(neighbor)) { // Only traverse positive nodes
+        if (positiveHelper(graph, neighbor, ending, visited)) {
+          return true;
+        }
+      }
+   }
+
     return false;
   }
 
@@ -166,6 +210,21 @@ public class Practice {
    * @return true if a person in the extended network works at the specified company, false otherwise
    */
   public static boolean hasExtendedConnectionAtCompany(Professional person, String companyName) {
+    if (person == null || companyName == null || companyName.isEmpty()) return false;
+    return hasHelper(person, companyName, new HashSet<>());
+  }
+
+  private static boolean hasHelper(Professional person, String companyName, Set<Professional> visited) {
+    if (person == null || visited.contains(person)) return false;
+
+    if (companyName.equals(person.getCompany())) return true;
+
+    visited.add(person);
+
+    for (Professional connection : person.getConnections()) {
+      if (hasHelper(connection, companyName, visited)) return true;
+    }
+
     return false;
   }
 }
